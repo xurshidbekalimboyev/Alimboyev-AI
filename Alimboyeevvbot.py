@@ -1,7 +1,6 @@
 import logging
 import os
-from google import genai
-from google.genai import types
+from groq import Groq
 from telegram import Update
 from telegram.ext import Application, MessageHandler, CommandHandler, filters, ContextTypes
 
@@ -10,12 +9,12 @@ logging.basicConfig(
     level=logging.INFO
 )
 
-TELEGRAM_TOKEN = os.environ.get("TELEGRAM_TOKEN")
-GEMINI_API_KEY = os.environ.get("GEMINI_API_KEY")
+TELEGRAM_TOKEN = os.environ.get("8562499987:AAH1D2yZD9Qjym3YSM7Jmf02peYHraoJMDw")
+GROQ_API_KEY = os.environ.get("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")
 
-client = genai.Client(api_key=GEMINI_API_KEY)
+client = Groq(api_key=GROQ_API_KEY)
 
-chat_sessions = {}
+chat_histories = {}
 
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user_name = update.effective_user.first_name
@@ -27,8 +26,8 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 async def reset(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user_id = update.effective_user.id
-    if user_id in chat_sessions:
-        del chat_sessions[user_id]
+    if user_id in chat_histories:
+        del chat_histories[user_id]
     await update.message.reply_text("✅ Suhbat tarixi tozalandi!")
 
 async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -40,17 +39,22 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
         action="typing"
     )
 
-    if user_id not in chat_sessions:
-        chat_sessions[user_id] = client.chats.create(
-            model="gemini-2.0-flash",
-            config=types.GenerateContentConfig(
-                system_instruction="Sen yordamchi AI botsan. O'zbek tilida qisqa va aniq javob ber."
-            )
-        )
+    if user_id not in chat_histories:
+        chat_histories[user_id] = [
+            {"role": "system", "content": "Sen yordamchi AI botsan. O'zbek tilida qisqa va aniq javob ber."}
+        ]
+
+    chat_histories[user_id].append({"role": "user", "content": user_text})
 
     try:
-        response = chat_sessions[user_id].send_message(user_text)
-        await update.message.reply_text(response.text)
+        response = client.chat.completions.create(
+            model="llama-3.3-70b-versatile",
+            messages=chat_histories[user_id],
+            max_tokens=1000
+        )
+        bot_reply = response.choices[0].message.content
+        chat_histories[user_id].append({"role": "assistant", "content": bot_reply})
+        await update.message.reply_text(bot_reply)
     except Exception as e:
         logging.error(f"Xato: {e}")
         await update.message.reply_text(f"❌ Xato: {e}")
