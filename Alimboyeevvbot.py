@@ -1,6 +1,6 @@
 import logging
 import os
-from groq import Groq
+from openai import OpenAI
 from telegram import Update
 from telegram.ext import Application, MessageHandler, CommandHandler, filters, ContextTypes
 
@@ -9,10 +9,13 @@ logging.basicConfig(
     level=logging.INFO
 )
 
-TELEGRAM_TOKEN = os.environ.get("8562499987:AAH1D2yZD9Qjym3YSM7Jmf02peYHraoJMDw")
-GROQ_API_KEY = os.environ.get("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")
+TELEGRAM_TOKEN = os.environ.get("TELEGRAM_TOKEN")
+DEEPSEEK_API_KEY = os.environ.get("DEEPSEEK_API_KEY")
 
-client = Groq(api_key=GROQ_API_KEY)
+client = OpenAI(
+    api_key=DEEPSEEK_API_KEY,
+    base_url="https://api.deepseek.com"
+)
 
 chat_histories = {}
 
@@ -48,7 +51,7 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     try:
         response = client.chat.completions.create(
-            model="llama-3.3-70b-versatile",
+            model="deepseek-chat",
             messages=chat_histories[user_id],
             max_tokens=1000
         )
