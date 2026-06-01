@@ -9,8 +9,9 @@ logging.basicConfig(
     level=logging.INFO
 )
 
-TELEGRAM_TOKEN = "8562499987:AAH1D2yZD9Qjym3YSM7Jmf02peYHraoJMDw"
-GEMINI_API_KEY = "AQ.Ab8RN6IRnvdO4mYbYbuar_sO9MVT3vwhHVbTzJNpU2a2_4TKhA"
+import os
+TELEGRAM_TOKEN = os.environ.get("TELEGRAM_TOKEN")
+GEMINI_API_KEY = os.environ.get("GEMINI_API_KEY")
 
 client = genai.Client(api_key=GEMINI_API_KEY)
 
