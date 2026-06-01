@@ -1,4 +1,5 @@
 import logging
+import os
 from google import genai
 from google.genai import types
 from telegram import Update
@@ -9,7 +10,6 @@ logging.basicConfig(
     level=logging.INFO
 )
 
-import os
 TELEGRAM_TOKEN = os.environ.get("TELEGRAM_TOKEN")
 GEMINI_API_KEY = os.environ.get("GEMINI_API_KEY")
 
@@ -48,12 +48,13 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
             )
         )
 
-try:
+    try:
         response = chat_sessions[user_id].send_message(user_text)
         await update.message.reply_text(response.text)
-    except Exception as e:logging.error(f"Xato: {e}")              
-        await update.message.reply_text(f"❌ Xato: {e}")  # xatoni ko'rsat
-        
+    except Exception as e:
+        logging.error(f"Xato: {e}")
+        await update.message.reply_text(f"❌ Xato: {e}")
+
 def main():
     app = Application.builder().token(TELEGRAM_TOKEN).build()
     app.add_handler(CommandHandler("start", start))
